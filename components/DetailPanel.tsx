@@ -33,7 +33,7 @@ function MiniMapView({ lat, lng }: { lat: number; lng: number }) {
     return () => { cancelled = true; if (mapRef.current) { (mapRef.current as L.Map).remove(); mapRef.current = null; } };
   }, [lat, lng]);
 
-  return <div ref={containerRef} className="rounded-lg overflow-hidden border border-gray-200" style={{ height: '144px' }} />;
+  return <div ref={containerRef} className="rounded overflow-hidden border border-gray-200" style={{ height: '120px' }} />;
 }
 
 export default function DetailPanel({ feature, onClose, mobile }: DetailPanelProps) {
@@ -176,7 +176,7 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
 
   const wrapperClass = mobile
     ? 'fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar safe-bottom'
-    : 'w-96 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar h-full';
+    : 'w-80 bg-white border-l border-gray-200 overflow-y-auto custom-scrollbar h-full';
 
   return (
     <div className={wrapperClass}>
@@ -186,31 +186,31 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
         </div>
       )}
 
-      <div className="p-4">
+      <div className="p-3">
         {/* Header */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-gray-900 truncate">{p.straat || resolvedStraat || 'Onbekende straat'}</h2>
-            <p className="text-sm text-gray-500">{p.gemeente} ({p.gemeenteCode})</p>
+            <h2 className="text-sm font-bold text-gray-900 truncate">{p.straat || resolvedStraat || 'Onbekende straat'}</h2>
+            <p className="text-xs text-gray-500">{p.gemeente} ({p.gemeenteCode})</p>
           </div>
-          <button onClick={onClose} className="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded" aria-label="Sluiten">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <button onClick={onClose} className="ml-2 p-0.5 text-gray-400 hover:text-gray-600 rounded" aria-label="Sluiten">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         {/* Category & RVV badges */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           {RVV_SIGN_IMAGES[p.rvvCode] && (
-            <img src={RVV_SIGN_IMAGES[p.rvvCode]} alt={p.rvvCode} className="w-10 h-10 object-contain shrink-0" />
+            <img src={RVV_SIGN_IMAGES[p.rvvCode]} alt={p.rvvCode} className="w-8 h-8 object-contain shrink-0" />
           )}
-          <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-white" style={{ background: catColor }}>
+          <div className="flex flex-wrap gap-1 items-center">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-white" style={{ background: catColor }}>
               {catLabel}
             </span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700">
               {p.rvvCode}
             </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-500">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] text-gray-500">
               {rvvDesc}
             </span>
           </div>
@@ -218,32 +218,32 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
 
         {/* Time window - highlighted */}
         {p.venstertijdTekst && (
-          <div className="mb-4 bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg">
-            <div className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Venstertijd (tekst)</div>
-            <div className="text-sm text-gray-800 font-medium">{p.venstertijdTekst}</div>
+          <div className="mb-3 bg-amber-50 border-l-4 border-amber-400 p-2 rounded-r-lg">
+            <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Venstertijd (tekst)</div>
+            <div className="text-xs text-gray-800 font-medium">{p.venstertijdTekst}</div>
           </div>
         )}
 
         {/* Structured fields */}
         {(p.openingHours || p.timeValidity) && (
-          <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-3 rounded-r-lg">
-            <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Gestructureerde tijden (OSM)</div>
+          <div className="mb-3 bg-green-50 border-l-4 border-green-500 p-2 rounded-r-lg">
+            <div className="text-[10px] font-semibold text-green-700 uppercase tracking-wide mb-0.5">Gestructureerde tijden (OSM)</div>
             {p.openingHours && (
-              <div className="text-sm"><span className="text-gray-500">openingHours:</span> <code className="text-green-800 font-mono text-xs bg-green-100 px-1 rounded">{p.openingHours}</code></div>
+              <div className="text-xs"><span className="text-gray-500">openingHours:</span> <code className="text-green-800 font-mono text-[10px] bg-green-100 px-1 rounded">{p.openingHours}</code></div>
             )}
             {p.timeValidity && (
-              <div className="text-sm mt-1"><span className="text-gray-500">timeValidity:</span> <code className="text-green-800 font-mono text-xs bg-green-100 px-1 rounded">{p.timeValidity}</code></div>
+              <div className="text-xs mt-0.5"><span className="text-gray-500">timeValidity:</span> <code className="text-green-800 font-mono text-[10px] bg-green-100 px-1 rounded">{p.timeValidity}</code></div>
             )}
           </div>
         )}
 
         {/* Vehicle types */}
         {p.vehicleTypes && p.vehicleTypes.length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Voertuigtypen</div>
+          <div className="mb-3">
+            <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Voertuigtypen</div>
             <div className="flex flex-wrap gap-1">
               {p.vehicleTypes.map((vt) => (
-                <span key={vt} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">{vt}</span>
+                <span key={vt} className="inline-block px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium">{vt}</span>
               ))}
             </div>
           </div>
@@ -251,19 +251,19 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
 
         {/* Onderborden */}
         {p.onderborden && p.onderborden.length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Onderborden ({p.onderborden.length})</div>
-            <div className="space-y-1.5">
+          <div className="mb-3">
+            <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Onderborden ({p.onderborden.length})</div>
+            <div className="space-y-1">
               {p.onderborden.map((ob, i) => (
-                <div key={i} className="bg-gray-50 rounded-lg px-3 py-2">
-                  <div className="flex items-start gap-2">
-                    <span className="inline-block px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded text-[10px] font-bold shrink-0 mt-0.5">
+                <div key={i} className="bg-gray-50 rounded px-2 py-1.5">
+                  <div className="flex items-start gap-1.5">
+                    <span className="inline-block px-1 py-0.5 bg-gray-200 text-gray-600 rounded text-[9px] font-bold shrink-0 mt-0.5">
                       {ob.signCode || ob.type || '?'}
                     </span>
-                    <span className="text-sm text-gray-700">{ob.text}</span>
+                    <span className="text-xs text-gray-700">{ob.text}</span>
                   </div>
                   {ob.openingHours && (
-                    <div className="mt-1 ml-8 text-xs text-green-700 font-mono bg-green-50 px-1.5 py-0.5 rounded inline-block">
+                    <div className="mt-0.5 ml-6 text-[10px] text-green-700 font-mono bg-green-50 px-1 py-0.5 rounded inline-block">
                       {ob.openingHours}
                     </div>
                   )}
@@ -274,103 +274,103 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
         )}
 
         {/* API version badge */}
-        <div className="mb-4">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">API data</div>
-          <div className="flex gap-2 items-center">
-            <span className={`px-2 py-0.5 rounded text-xs font-bold ${p.apiVersion === 'v5' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+        <div className="mb-3">
+          <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">API data</div>
+          <div className="flex gap-1.5 items-center">
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${p.apiVersion === 'v5' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
               Geladen via {p.apiVersion.toUpperCase()}
             </span>
             {p.lastModifiedOn && (
-              <span className="text-xs text-gray-400">Laatst gewijzigd: {p.lastModifiedOn}</span>
+              <span className="text-[10px] text-gray-400">Laatst gewijzigd: {p.lastModifiedOn}</span>
             )}
           </div>
         </div>
 
         {/* V4 vs V5 diff */}
-        <div className="mb-4">
+        <div className="mb-3">
           <button onClick={() => { setShowDiff(!showDiff); if (!showDiff && (!v4Raw || !v5Raw)) fetchDiff(); }}
-            className="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-sm font-medium text-indigo-700 flex justify-between items-center">
+            className="w-full text-left px-2 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded text-xs font-medium text-indigo-700 flex justify-between items-center">
             <span>V4 vs V5 vergelijking</span>
-            <svg className={`w-4 h-4 transition-transform ${showDiff ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <svg className={`w-3.5 h-3.5 transition-transform ${showDiff ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
           {showDiff && (
             <div className="mt-2 rounded-lg border border-gray-200 overflow-hidden">
               {diffLoading && !diffItems ? (
-                <div className="p-3 text-xs text-gray-400 animate-pulse">V4 en V5 ophalen...</div>
+                <div className="p-2 text-[10px] text-gray-400 animate-pulse">V4 en V5 ophalen...</div>
               ) : diffItems ? (
-                <table className="w-full text-xs">
+                <table className="w-full text-[10px]">
                   <thead>
                     <tr className="bg-gray-50 text-gray-500">
-                      <th className="text-left px-2 py-1 font-medium">Veld</th>
-                      <th className="text-left px-2 py-1 font-medium">V4</th>
-                      <th className="text-left px-2 py-1 font-medium">V5</th>
+                      <th className="text-left px-1.5 py-0.5 font-medium">Veld</th>
+                      <th className="text-left px-1.5 py-0.5 font-medium">V4</th>
+                      <th className="text-left px-1.5 py-0.5 font-medium">V5</th>
                     </tr>
                   </thead>
                   <tbody>
                     {diffItems.map((d) => (
                       <tr key={d.field} className={d.changed ? 'bg-amber-50' : ''}>
-                        <td className="px-2 py-1 text-gray-600 font-medium">{d.field}</td>
-                        <td className="px-2 py-1 font-mono text-[10px] text-gray-700 max-w-[120px] truncate" title={d.v4}>{d.v4}</td>
-                        <td className="px-2 py-1 font-mono text-[10px] text-gray-700 max-w-[120px] truncate" title={d.v5}>{d.v5}</td>
+                        <td className="px-1.5 py-0.5 text-gray-600 font-medium">{d.field}</td>
+                        <td className="px-1.5 py-0.5 font-mono text-[9px] text-gray-700 max-w-[100px] truncate" title={d.v4}>{d.v4}</td>
+                        <td className="px-1.5 py-0.5 font-mono text-[9px] text-gray-700 max-w-[100px] truncate" title={d.v5}>{d.v5}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <div className="p-3 text-xs text-gray-400">Klik om te laden</div>
+                <div className="p-2 text-[10px] text-gray-400">Klik om te laden</div>
               )}
             </div>
           )}
         </div>
 
         {/* Raw API JSON sections */}
-        <div className="mb-4 space-y-2">
+        <div className="mb-3 space-y-1.5">
           <button onClick={() => { setShowV4Json(!showV4Json); if (!v4Json && !showV4Json) fetchApiJson('v4'); }}
-            className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 flex justify-between items-center">
+            className="w-full text-left px-2 py-1.5 bg-gray-50 hover:bg-gray-100 rounded text-xs font-medium text-gray-700 flex justify-between items-center">
             <span>V4 API Response</span>
-            <svg className={`w-4 h-4 transition-transform ${showV4Json ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <svg className={`w-3.5 h-3.5 transition-transform ${showV4Json ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
           {showV4Json && (
-            <div className="bg-gray-900 rounded-lg p-3 overflow-x-auto">
-              {v4Loading ? <div className="text-gray-400 text-xs animate-pulse">Laden...</div> :
-                <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">{v4Json || 'Klik om te laden'}</pre>}
+            <div className="bg-gray-900 rounded p-2 overflow-x-auto">
+              {v4Loading ? <div className="text-gray-400 text-[10px] animate-pulse">Laden...</div> :
+                <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap">{v4Json || 'Klik om te laden'}</pre>}
             </div>
           )}
 
           <button onClick={() => { setShowV5Json(!showV5Json); if (!v5Json && !showV5Json) fetchApiJson('v5'); }}
-            className="w-full text-left px-3 py-2 bg-purple-50 hover:bg-purple-100 rounded-lg text-sm font-medium text-purple-700 flex justify-between items-center">
+            className="w-full text-left px-2 py-1.5 bg-purple-50 hover:bg-purple-100 rounded text-xs font-medium text-purple-700 flex justify-between items-center">
             <span>V5 API Response</span>
-            <svg className={`w-4 h-4 transition-transform ${showV5Json ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <svg className={`w-3.5 h-3.5 transition-transform ${showV5Json ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
           {showV5Json && (
-            <div className="bg-gray-900 rounded-lg p-3 overflow-x-auto">
-              {v5Loading ? <div className="text-purple-400 text-xs animate-pulse">Laden...</div> :
-                <pre className="text-xs text-purple-400 font-mono whitespace-pre-wrap">{v5Json || 'Klik om te laden'}</pre>}
+            <div className="bg-gray-900 rounded p-2 overflow-x-auto">
+              {v5Loading ? <div className="text-purple-400 text-[10px] animate-pulse">Laden...</div> :
+                <pre className="text-[10px] text-purple-400 font-mono whitespace-pre-wrap">{v5Json || 'Klik om te laden'}</pre>}
             </div>
           )}
         </div>
 
         {/* Mini map */}
-        <div className="mb-4">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Locatie</div>
+        <div className="mb-3">
+          <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Locatie</div>
           <MiniMapView lat={lat} lng={lng} />
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-1.5">
             <a href={`https://www.google.com/maps/@${lat},${lng},18z`} target="_blank" rel="noopener"
-              className="text-xs text-blue-600 hover:underline">Google Maps</a>
+              className="text-[10px] text-blue-600 hover:underline">Google Maps</a>
             <a href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`} target="_blank" rel="noopener"
-              className="text-xs text-blue-600 hover:underline">Street View</a>
+              className="text-[10px] text-blue-600 hover:underline">Street View</a>
           </div>
         </div>
 
         {/* George deeplink */}
         <a href={georgeUrl} target="_blank" rel="noopener"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors mb-4">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded font-semibold text-xs hover:bg-blue-700 transition-colors mb-3">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
           Open in George
         </a>
 
         {/* Footer */}
-        <div className="text-xs text-gray-400 space-y-0.5 border-t border-gray-100 pt-3">
+        <div className="text-[10px] text-gray-400 space-y-0.5 border-t border-gray-100 pt-2">
           <div>{lat.toFixed(6)}, {lng.toFixed(6)}</div>
           <div className="font-mono">{p.id.substring(0, 8)}...</div>
         </div>
