@@ -6,6 +6,7 @@ import { VenstertijdFeature, Filters, CATEGORY_COLORS, CATEGORY_LABELS } from '@
 import FilterPanel from '@/components/FilterPanel';
 import DetailPanel from '@/components/DetailPanel';
 import SearchBar from '@/components/SearchBar';
+import AboutModal from '@/components/AboutModal';
 
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -21,6 +22,7 @@ export default function Home() {
   const [selected, setSelected] = useState<VenstertijdFeature | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [nwbVersion, setNwbVersion] = useState<string | null>(null);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const mapRef = useRef<{ flyTo: (lat: number, lng: number, zoom?: number) => void; showSearchPin: (lat: number, lng: number, label: string) => void; clearSearchPin: () => void }>(null);
@@ -107,7 +109,7 @@ export default function Home() {
   // Escape to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setSelected(null); setMobileSidebarOpen(false); }
+      if (e.key === 'Escape') { setSelected(null); setMobileSidebarOpen(false); setShowAbout(false); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -131,6 +133,14 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {/* About button */}
+          <button onClick={() => setShowAbout(true)}
+            className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center">
+            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Over
+          </button>
           {/* API version toggle */}
           <div className="flex rounded-lg overflow-hidden border border-gray-200">
             <button onClick={() => loadStatic('v4')} disabled={loading}
@@ -216,6 +226,8 @@ export default function Home() {
           </>
         )}
       </div>
+
+      <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
     </div>
   );
 }
