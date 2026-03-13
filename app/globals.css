@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-ndw-blue: #003366;
+  --color-ndw-light: #e8f0fe;
+  --color-dmi-yellow: #F0AB00;
+  --color-cat-bezorg: #2196F3;
+  --color-cat-spits: #FF9800;
+  --color-cat-vracht: #E91E63;
+  --color-cat-overig: #9E9E9E;
+}
+
+/* Leaflet fixes */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.sign-marker {
+  background: transparent;
+  border: none;
+}
+
+.marker-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.marker-icon:hover {
+  transform: scale(1.2);
+  z-index: 1000 !important;
+}
+
+.sign-tooltip {
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.search-tooltip {
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  background: #dc2626 !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.search-tooltip::before {
+  border-top-color: #dc2626 !important;
+}
+
+.search-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+  min-width: 220px;
+}
+
+@media (max-width: 640px) {
+  .leaflet-popup-content-wrapper { max-width: calc(100vw - 40px); }
+  .leaflet-popup-content { margin: 10px; min-width: unset; font-size: 14px; }
+  .leaflet-control-zoom a { width: 36px !important; height: 36px !important; line-height: 36px !important; }
+  .leaflet-control-zoom { margin-bottom: 80px !important; }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d1d5db;
+  margin: 0 auto;
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
