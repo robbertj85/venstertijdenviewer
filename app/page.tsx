@@ -26,15 +26,16 @@ export default function Home() {
   const mapRef = useRef<{ flyTo: (lat: number, lng: number, zoom?: number) => void; showSearchPin: (lat: number, lng: number, label: string) => void; clearSearchPin: () => void }>(null);
   const fetchId = useRef(0);
 
-  const fetchData = useCallback(async (version: 'v4' | 'v5') => {
+  // Load static data from /data/*.json (instant), or live from API on refresh
+  const loadStatic = useCallback(async (version: 'v4' | 'v5') => {
     const id = ++fetchId.current;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/v1/signs?version=${version}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(`/data/${version}.json`);
+      if (!res.ok) throw new Error(`Statisch bestand niet gevonden`);
       const data = await res.json();
-      if (id !== fetchId.current) return; // stale
+      if (id !== fetchId.current) return;
       setFeatures(data.features || []);
       setApiVersion(version);
       setNwbVersion(data.metadata?.nwbVersion || null);
@@ -47,7 +48,31 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => { fetchData('v4'); }, [fetchData]);
+  const fetchLive = useCallback(async (version: 'v4' | 'v5') => {
+    const id = ++fetchId.current;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/signs?version=${version}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (id !== fetchId.current) return;
+      setFeatures(data.features || []);
+      setApiVersion(version);
+      setNwbVersion(data.metadata?.nwbVersion || null);
+      setFetchedAt(data.metadata?.fetchedAt || null);
+    } catch (e) {
+      if (id !== fetchId.current) return;
+      // Fallback to static on API failure
+      setError(`Live refresh mislukt (${e instanceof Error ? e.message : '?'}), statische data geladen`);
+      await loadStatic(version);
+    } finally {
+      if (id === fetchId.current) setLoading(false);
+    }
+  }, [loadStatic]);
+
+  // Initial load from static files (fast)
+  useEffect(() => { loadStatic('v4'); }, [loadStatic]);
 
   const filtered = useMemo(() => {
     return features.filter((f) => {
@@ -108,21 +133,21 @@ export default function Home() {
         <div className="flex items-center gap-2 shrink-0">
           {/* API version toggle */}
           <div className="flex rounded-lg overflow-hidden border border-gray-200">
-            <button onClick={() => fetchData('v4')} disabled={loading}
+            <button onClick={() => loadStatic('v4')} disabled={loading}
               className={`px-3 py-1 text-xs font-bold transition-colors ${apiVersion === 'v4' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
               V4
             </button>
-            <button onClick={() => fetchData('v5')} disabled={loading}
+            <button onClick={() => loadStatic('v5')} disabled={loading}
               className={`px-3 py-1 text-xs font-bold transition-colors ${apiVersion === 'v5' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
               V5
             </button>
           </div>
-          <button onClick={() => fetchData(apiVersion)} disabled={loading}
+          <button onClick={() => fetchLive(apiVersion)} disabled={loading}
             className="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1">
             <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {loading ? 'Laden...' : 'Refresh'}
+            {loading ? 'Laden...' : 'Live refresh'}
           </button>
           <div className="hidden md:flex flex-col items-end text-[9px] text-gray-400 leading-tight">
             {nwbVersion && <span title="Versie van het NWB wegenbestand waaraan NDW de bordlocaties koppelt">NWB {nwbVersion}</span>}

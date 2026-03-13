@@ -45,7 +45,9 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
   const searchPinRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const gemeenteLayerRef = useRef<L.TileLayer.WMS | null>(null);
   const [activeLayer, setActiveLayer] = useState('cartodb');
+  const [showGemeenten, setShowGemeenten] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -70,6 +72,24 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
     }).addTo(mapRef.current);
     tileLayerRef.current.setZIndex(0);
   }, [activeLayer]);
+
+  // PDOK gemeentegrenzen WMS toggle
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (showGemeenten && !gemeenteLayerRef.current) {
+      gemeenteLayerRef.current = L.tileLayer.wms('https://service.pdok.nl/kadaster/bestuurlijkegebieden/wms/v1_0', {
+        layers: 'Gemeentegebied',
+        format: 'image/png',
+        transparent: true,
+        styles: '',
+        opacity: 0.35,
+      } as L.WMSOptions).addTo(mapRef.current);
+      gemeenteLayerRef.current.setZIndex(1);
+    } else if (!showGemeenten && gemeenteLayerRef.current) {
+      mapRef.current.removeLayer(gemeenteLayerRef.current);
+      gemeenteLayerRef.current = null;
+    }
+  }, [showGemeenten]);
 
   useImperativeHandle(ref, () => ({
     flyTo: (lat: number, lng: number, zoom?: number) => {
@@ -140,7 +160,11 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-      <div className="absolute bottom-5 right-3 z-[1000]">
+      <div className="absolute bottom-5 right-3 z-[1000] flex flex-col gap-1.5 items-end">
+        <button onClick={() => setShowGemeenten(!showGemeenten)}
+          className={`px-2.5 py-1 rounded-md shadow-sm text-xs font-medium transition-colors ${showGemeenten ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+          Gemeentegrenzen
+        </button>
         <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value)}
           className="bg-white border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm text-gray-700 cursor-pointer">
           {Object.entries(TILE_LAYERS).map(([key, l]) => <option key={key} value={key}>{l.name}</option>)}
