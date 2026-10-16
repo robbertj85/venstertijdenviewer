@@ -23,7 +23,6 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  const [nwbVersion, setNwbVersion] = useState<string | null>(null);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const mapRef = useRef<{ flyTo: (lat: number, lng: number, zoom?: number) => void; showSearchPin: (lat: number, lng: number, label: string) => void; clearSearchPin: () => void }>(null);
   const fetchId = useRef(0);
@@ -40,7 +39,6 @@ export default function Home() {
       if (id !== fetchId.current) return;
       setFeatures(data.features || []);
       setApiVersion(version);
-      setNwbVersion(data.metadata?.nwbVersion || null);
       setFetchedAt(data.metadata?.fetchedAt || null);
     } catch (e) {
       if (id !== fetchId.current) return;
@@ -61,7 +59,6 @@ export default function Home() {
       if (id !== fetchId.current) return;
       setFeatures(data.features || []);
       setApiVersion(version);
-      setNwbVersion(data.metadata?.nwbVersion || null);
       setFetchedAt(data.metadata?.fetchedAt || null);
     } catch (e) {
       if (id !== fetchId.current) return;
@@ -75,6 +72,26 @@ export default function Home() {
 
   // Initial load from static files (fast)
   useEffect(() => { loadStatic('v4'); }, [loadStatic]);
+
+  // NDW stores the NWB version per sign: the road network edition the sign was
+  // last matched to. Most signs haven't been re-matched since 2024-03-01, so the
+  // single most common version understates how current the data is. Show the
+  // newest version, with the spread in the tooltip.
+  const nwbInfo = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const f of features) {
+      const v = f.properties.nwbVersion;
+      if (v) counts[v] = (counts[v] || 0) + 1;
+    }
+    const versions = Object.keys(counts).sort();
+    if (versions.length === 0) return null;
+    const [mostCommon, mostCommonCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    return {
+      newest: versions[versions.length - 1],
+      title: `NDW koppelt elk bord aan een versie van het NWB wegenbestand. Deze borden: ${versions[0]} t/m ${versions[versions.length - 1]}; meest voorkomend ${mostCommon} (${mostCommonCount} van ${total}).`,
+    };
+  }, [features]);
 
   const filtered = useMemo(() => {
     return features.filter((f) => {
@@ -160,7 +177,7 @@ export default function Home() {
             {loading ? 'Laden...' : 'Live refresh'}
           </button>
           <div className="hidden md:flex flex-col items-end text-[9px] text-gray-400 leading-tight">
-            {nwbVersion && <span title="Versie van het NWB wegenbestand waaraan NDW de bordlocaties koppelt">NWB {nwbVersion}</span>}
+            {nwbInfo && <span title={nwbInfo.title}>NWB t/m {nwbInfo.newest}</span>}
             {fetchedAt && <span title="Tijdstip waarop data is opgehaald van data.ndw.nu">NDW fetch {new Date(fetchedAt).toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>}
           </div>
           {/* Mobile sidebar toggle */}
