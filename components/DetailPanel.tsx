@@ -16,11 +16,18 @@ function MiniMapView({ lat, lng }: { lat: number; lng: number }) {
   useEffect(() => {
     if (!containerRef.current) return;
     let cancelled = false;
-    import('leaflet').then((L) => {
+    Promise.all([import('leaflet'), import('@maplibre/maplibre-gl-leaflet')]).then(([L, { maplibreGL }]) => {
       if (cancelled || !containerRef.current) return;
       if (mapRef.current) { (mapRef.current as L.Map).remove(); mapRef.current = null; }
-      const map = L.map(containerRef.current, { center: [lat, lng], zoom: 17, zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+      // No zoom animation: it makes the GL basemap flicker (see Map.tsx).
+      const map = L.map(containerRef.current, { center: [lat, lng], zoom: 17, zoomControl: true, attributionControl: false, zoomAnimation: false });
+      // CARTO's raster tiles now carry an "API KEY REQUIRED" watermark, so use its
+      // keyless vector style; fall back to OSM raster without WebGL2.
+      if (document.createElement('canvas').getContext('webgl2')) {
+        maplibreGL({ style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' }).addTo(map);
+      } else {
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      }
       const icon = L.divIcon({
         className: 'sign-marker',
         html: '<div style="width:14px;height:14px;background:#003366;border:2px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
