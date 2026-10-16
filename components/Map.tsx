@@ -2,29 +2,97 @@
 
 import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import L from 'leaflet';
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { VenstertijdFeature, Filters, CATEGORY_COLORS } from '@/types/venstertijden';
 
-const TILE_LAYERS: Record<string, { name: string; url: string; attribution: string; subdomains?: string; maxZoom?: number }> = {
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>';
+const NDW_ATTRIBUTION = 'Data: <a href="https://data.ndw.nu">NDW</a>';
+const CARTO_ATTRIBUTION = `${OSM_ATTRIBUTION} &copy; <a href="https://carto.com/attributions">CARTO</a> | ${NDW_ATTRIBUTION}`;
+
+type BaseMapConfig =
+  | { name: string; type: 'raster'; url: string; attribution: string; subdomains?: string; maxZoom?: number }
+  | { name: string; type: 'vector'; style: string; attribution: string };
+
+// CARTO's raster endpoint (basemaps.cartocdn.com/{style}/{z}/{x}/{y}.png) started
+// serving an "API KEY REQUIRED" watermark in Aug 2026 and is being retired. Their
+// vector GL styles serve the same cartography and currently need no key, so the
+// CARTO layers below are vector. Raster layers stay as the no-WebGL fallback.
+const TILE_LAYERS = {
   cartodb: {
-    name: 'CartoDB Light',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a> | Data: <a href="https://data.ndw.nu">NDW</a>',
-    subdomains: 'abcd',
-    maxZoom: 19,
+    name: 'CARTO Positron',
+    type: 'vector',
+    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    attribution: CARTO_ATTRIBUTION,
+  },
+  cartoVoyager: {
+    name: 'CARTO Voyager',
+    type: 'vector',
+    style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    attribution: CARTO_ATTRIBUTION,
   },
   osm: {
     name: 'OpenStreetMap',
+    type: 'raster',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    attribution: `${OSM_ATTRIBUTION} | ${NDW_ATTRIBUTION}`,
     maxZoom: 19,
   },
   esri_satellite: {
     name: 'Satellite',
+    type: 'raster',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri, Maxar',
+    attribution: `&copy; Esri, Maxar | ${NDW_ATTRIBUTION}`,
     maxZoom: 19,
   },
-};
+} satisfies Record<string, BaseMapConfig>;
+
+type TileLayerKey = keyof typeof TILE_LAYERS;
+
+// MapLibre needs WebGL2; older iOS and some GPUs don't have it.
+function supportsWebGL2(): boolean {
+  try {
+    return Boolean(document.createElement('canvas').getContext('webgl2'));
+  } catch {
+    return false;
+  }
+}
+
+function getAvailableLayers(): TileLayerKey[] {
+  const hasWebGL2 = supportsWebGL2();
+  return (Object.keys(TILE_LAYERS) as TileLayerKey[]).filter(
+    (key) => hasWebGL2 || TILE_LAYERS[key].type !== 'vector'
+  );
+}
+
+// Own pane below tilePane (z-index 200), so the gemeentegrenzen WMS overlay stays
+// on top whichever basemap is (re)added last.
+const BASEMAP_PANE = 'basemap';
+
+// maplibre-gl is pinned to v5 in package.json: with v6 the adapter's transform
+// patching leaves the GL map in a state where it never requests tiles, so the
+// style loads but the basemap stays blank.
+function createBaseLayer(config: BaseMapConfig): L.Layer {
+  if (config.type === 'vector') {
+    // `pane` is a supported adapter option that its type definitions omit.
+    const options: L.LeafletMaplibreGLOptions & { pane: string } = {
+      style: config.style,
+      pane: BASEMAP_PANE,
+      attributionControl: { customAttribution: config.attribution },
+    };
+    const layer = maplibreGL(options);
+    // The inner GL map only exists once the layer has been added to the map.
+    layer.on('add', () => {
+      layer.getMaplibreMap().on('error', (e) => {
+        console.error('[basemap]', e.error?.message ?? e);
+      });
+    });
+    return layer;
+  }
+  return L.tileLayer(config.url, {
+    attribution: config.attribution, subdomains: config.subdomains || 'abc', maxZoom: config.maxZoom || 19, pane: BASEMAP_PANE,
+  });
+}
 
 interface MapProps {
   features: VenstertijdFeature[];
@@ -44,19 +112,21 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
   const markersRef = useRef<L.LayerGroup | null>(null);
   const searchPinRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const tileLayerRef = useRef<L.Layer | null>(null);
   const gemeenteLayerRef = useRef<L.TileLayer.WMS | null>(null);
-  const [activeLayer, setActiveLayer] = useState('cartodb');
+  // Computed once on the client; falls back to a raster layer without WebGL2.
+  const [availableLayers] = useState(getAvailableLayers);
+  const [activeLayer, setActiveLayer] = useState<TileLayerKey>(availableLayers[0]);
   const [showGemeenten, setShowGemeenten] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = L.map(containerRef.current, { center: [52.15, 5.4], zoom: 8, zoomControl: false });
+    // Leaflet's animated zoom makes the GL basemap render a single zoom step
+    // several times (CSS-scaled canvas mid-animation, then camera re-jumps), which
+    // reads as flicker. Zooming is one discrete step instead.
+    const map = L.map(containerRef.current, { center: [52.15, 5.4], zoom: 8, zoomControl: false, zoomAnimation: false });
+    map.createPane(BASEMAP_PANE).style.zIndex = '150';
     L.control.zoom({ position: 'topright' }).addTo(map);
-    const layer = TILE_LAYERS.cartodb;
-    tileLayerRef.current = L.tileLayer(layer.url, {
-      attribution: layer.attribution, subdomains: layer.subdomains || 'abc', maxZoom: layer.maxZoom || 19,
-    }).addTo(map);
     markersRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
@@ -64,13 +134,9 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const config = TILE_LAYERS[activeLayer];
-    if (!config) return;
+    const config: BaseMapConfig = TILE_LAYERS[activeLayer];
     if (tileLayerRef.current) mapRef.current.removeLayer(tileLayerRef.current);
-    tileLayerRef.current = L.tileLayer(config.url, {
-      attribution: config.attribution, subdomains: config.subdomains || 'abc', maxZoom: config.maxZoom || 19,
-    }).addTo(mapRef.current);
-    tileLayerRef.current.setZIndex(0);
+    tileLayerRef.current = createBaseLayer(config).addTo(mapRef.current);
   }, [activeLayer]);
 
   // PDOK gemeentegrenzen WMS toggle
@@ -165,9 +231,9 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ features, filters, on
           className={`px-2.5 py-1 rounded-md shadow-sm text-xs font-medium transition-colors ${showGemeenten ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
           Gemeentegrenzen
         </button>
-        <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value)}
+        <select value={activeLayer} onChange={(e) => setActiveLayer(e.target.value as TileLayerKey)}
           className="bg-white border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm text-gray-700 cursor-pointer">
-          {Object.entries(TILE_LAYERS).map(([key, l]) => <option key={key} value={key}>{l.name}</option>)}
+          {availableLayers.map((key) => <option key={key} value={key}>{TILE_LAYERS[key].name}</option>)}
         </select>
       </div>
     </div>
