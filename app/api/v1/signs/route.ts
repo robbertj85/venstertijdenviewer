@@ -106,7 +106,8 @@ function processV5(features: NdwFeature[], rvvCode: string) {
   const results: Record<string, unknown>[] = [];
   for (const feat of features) {
     const p = feat.properties;
-    const cc = p.operatorCode as string;
+    // NDW renamed operatorCode to countyCode in V5 (2026); keep the old name as fallback.
+    const cc = (p.countyCode ?? p.operatorCode) as string;
     if (!G4_G40[cc]) continue;
 
     const sups = (p.supplementarySigns as { text: string; openingHours?: string; signCode?: string }[]) || [];
@@ -123,7 +124,7 @@ function processV5(features: NdwFeature[], rvvCode: string) {
       geometry: feat.geometry,
       properties: {
         id: feat.id,
-        gemeente: (p.operatorName as string) || G4_G40[cc],
+        gemeente: G4_G40[cc],
         gemeenteCode: cc,
         rvvCode,
         categorie: categorize(rvvCode),

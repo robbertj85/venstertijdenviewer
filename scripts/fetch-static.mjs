@@ -38,7 +38,8 @@ async function fetchAll(version) {
       console.log(`  Got ${feats.length} features`);
       for (const f of feats) {
         const p = f.properties;
-        const cc = version === 'v5' ? p.operatorCode : p.countyCode;
+        // NDW renamed operatorCode to countyCode in V5 (2026); keep the old name as fallback.
+        const cc = version === 'v5' ? (p.countyCode ?? p.operatorCode) : p.countyCode;
         if (!G4_G40[cc]) continue;
         const sups = version === 'v5' ? (p.supplementarySigns || []) : [];
         const ts4 = version === 'v4' ? (p.textSigns || []) : [];
@@ -51,7 +52,7 @@ async function fetchAll(version) {
         if (timeTexts.length === 0 && !hasOH && !hasTV) continue;
 
         const props = version === 'v5' ? {
-          id: f.id, gemeente: p.operatorName || G4_G40[cc], gemeenteCode: cc, rvvCode: code,
+          id: f.id, gemeente: G4_G40[cc], gemeenteCode: cc, rvvCode: code,
           categorie: categorize(code), straat: '',
           latitude: f.geometry.coordinates[1], longitude: f.geometry.coordinates[0],
           venstertijdTekst: timeTexts.join(' / '),
