@@ -6,12 +6,15 @@
 # network (no URI rewrite). See deploy/README.md.
 #
 # Coolify resource setting (Advanced): Consistent Container Names on, Custom
-# Internal Name `venstertijdenviewer`. The container is then app-venstertijdenviewer.
+# Internal Name `venstertijdenviewer`. The container is then
+# venstertijdenviewer-venstertijdenviewer.
 #
 # One service: the data is static and baked into the image, so there is no
-# nginx, worker or volume.
+# nginx, worker or volume. The service is named after the app (not `app`) because
+# it joins the shared `coolify` network, where Docker also registers the service
+# name as an alias; a bare `app` there would catch other apps' traffic.
 services:
-  app:
+  venstertijdenviewer:
     build:
       context: .
       dockerfile: deploy/Dockerfile
