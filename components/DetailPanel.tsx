@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { VenstertijdFeature, CATEGORY_COLORS, CATEGORY_LABELS, RVV_DESCRIPTIONS, RVV_SIGN_IMAGES } from '@/types/venstertijden';
+import { withBase } from '@/lib/basePath';
 
 interface DetailPanelProps {
   feature: VenstertijdFeature;
@@ -68,7 +69,7 @@ export default function DetailPanel({ feature, onClose, mobile }: DetailPanelPro
     setResolvedStraat(null);
     if (p.straat) return;
     let cancelled = false;
-    fetch(`/api/v1/geocode?lat=${lat}&lon=${lng}`)
+    fetch(withBase(`/api/v1/geocode?lat=${lat}&lon=${lng}`))
       .then(res => res.json())
       .then(data => { if (!cancelled && data.straat) setResolvedStraat(data.straat); })
       .catch(() => {});

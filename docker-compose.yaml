@@ -1,0 +1,38 @@
+# Coolify "Docker Compose" resource for prototype.transportlab.app/venstertijdenviewer.
+# Optional settings in the Coolify UI (Environment Variables):
+# NEXT_PUBLIC_UMAMI_SRC, NEXT_PUBLIC_UMAMI_WEBSITE_ID.
+# Nginx Proxy Manager: proxy host prototype.transportlab.app, custom location
+# /venstertijdenviewer -> http://venstertijdenviewer:3000 on the shared `coolify`
+# network (no URI rewrite). See deploy/README.md.
+#
+# Coolify resource setting (Advanced): Consistent Container Names on, Custom
+# Internal Name `venstertijdenviewer`. The container is then app-venstertijdenviewer.
+#
+# One service: the data is static and baked into the image, so there is no
+# nginx, worker or volume.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+      args:
+        - NEXT_PUBLIC_BASE_PATH=/venstertijdenviewer
+        - NEXT_PUBLIC_UMAMI_SRC=${NEXT_PUBLIC_UMAMI_SRC:-}
+        - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      default:
+      coolify:
+        aliases:
+          - venstertijdenviewer
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/venstertijdenviewer').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  coolify:
+    external: true

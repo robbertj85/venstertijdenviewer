@@ -1,3 +1,5 @@
+import { withBase } from '@/lib/basePath';
+
 // V4 sign from NDW API
 export interface V4TextSign {
   type: string; // VOOR, UIT, TIJD, VRIJ, OTHER
@@ -127,16 +129,16 @@ export const RVV_DESCRIPTIONS: Record<string, string> = {
 };
 
 export const RVV_SIGN_IMAGES: Record<string, string> = {
-  C1: '/signs/C1.svg',
-  C6: '/signs/C6.svg',
-  C7: '/signs/C7.svg',
-  C7a: '/signs/C7a.svg',
-  C7b: '/signs/C7b.svg',
-  C12: '/signs/C12.svg',
-  C17: '/signs/C17.svg',
-  C21: '/signs/C21.svg',
-  G5: '/signs/G5.svg',
-  G7: '/signs/G7.svg',
+  C1: withBase('/signs/C1.svg'),
+  C6: withBase('/signs/C6.svg'),
+  C7: withBase('/signs/C7.svg'),
+  C7a: withBase('/signs/C7a.svg'),
+  C7b: withBase('/signs/C7b.svg'),
+  C12: withBase('/signs/C12.svg'),
+  C17: withBase('/signs/C17.svg'),
+  C21: withBase('/signs/C21.svg'),
+  G5: withBase('/signs/G5.svg'),
+  G7: withBase('/signs/G7.svg'),
 };
 
 export function categorize(rvvCode: string): VenstertijdSign['categorie'] {

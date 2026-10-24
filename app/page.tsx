@@ -7,6 +7,7 @@ import FilterPanel from '@/components/FilterPanel';
 import DetailPanel from '@/components/DetailPanel';
 import SearchBar from '@/components/SearchBar';
 import AboutModal from '@/components/AboutModal';
+import { withBase } from '@/lib/basePath';
 
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -33,7 +34,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/data/${version}.json`);
+      const res = await fetch(withBase(`/data/${version}.json`));
       if (!res.ok) throw new Error(`Statisch bestand niet gevonden`);
       const data = await res.json();
       if (id !== fetchId.current) return;
@@ -53,7 +54,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/v1/signs?version=${version}`);
+      const res = await fetch(withBase(`/api/v1/signs?version=${version}`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (id !== fetchId.current) return;
