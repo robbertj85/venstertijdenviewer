@@ -28,3 +28,6 @@ yarn-error.log*
 .DS_Store
 *.tgz
 .vercel
+
+# copied from node_modules by predev/prebuild
+public/maplibre-gl-worker.mjs

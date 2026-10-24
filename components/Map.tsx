@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import L from 'leaflet';
-import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
+import { maplibreGL } from '@/lib/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { VenstertijdFeature, Filters, CATEGORY_COLORS } from '@/types/venstertijden';
 

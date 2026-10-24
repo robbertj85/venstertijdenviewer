@@ -17,7 +17,7 @@ function MiniMapView({ lat, lng }: { lat: number; lng: number }) {
   useEffect(() => {
     if (!containerRef.current) return;
     let cancelled = false;
-    Promise.all([import('leaflet'), import('@maplibre/maplibre-gl-leaflet')]).then(([L, { maplibreGL }]) => {
+    Promise.all([import('leaflet'), import('@/lib/maplibre')]).then(([L, { maplibreGL }]) => {
       if (cancelled || !containerRef.current) return;
       if (mapRef.current) { (mapRef.current as L.Map).remove(); mapRef.current = null; }
       // No zoom animation: it makes the GL basemap flicker (see Map.tsx).
